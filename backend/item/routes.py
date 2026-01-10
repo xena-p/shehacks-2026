@@ -115,3 +115,24 @@ def get_user_items(user_id):
     """Get items posted by a specific user"""
     items, status_code = Item.get_user_items(user_id)
     return jsonify({"items": items}), status_code
+
+
+@item_bp.route("/search", methods=["GET"])
+def get_items_for_search():
+    """Get items for users search"""
+    user_id = request.args.get("user_id")
+    user_input=request.args.get("query")
+
+    if not user_id:
+        return jsonify({"error": "User ID required"}), 401
+
+    if not user_input:
+        return jsonify({"error": "Object Name required"}), 400
+    
+    
+    items = Item.get_user_query(user_input,user_id)
+    for item in items:
+        item["_id"] = str(item["_id"])
+        item["user_id"] = str(item["user_id"])
+
+    return jsonify({"items": items}),200

@@ -10,6 +10,7 @@ class Item:
         """Create a new item"""
         user = users_col.find_one({"_id": ObjectId(user_id)})
         user_program = user.get("profile", {}).get("program", "Unknown")
+        user_school = user.get("profile", {}).get("school", "Unknown")
         try:
             item = {
                 "user_id": ObjectId(user_id),
@@ -19,6 +20,7 @@ class Item:
                 "category": item_data.get("category"),
                 "requester": " ", # no requester at creation
                 "program": user_program, #optional
+                "school": user_school,
                 "images": item_data.get("images", []),
                 "return_date": item_data.get("return_date"),
                 "status": "available"  # available, exchanged, removed
@@ -92,3 +94,22 @@ class Item:
 
         except Exception as e:
             return {"error": f"Failed to request item: {str(e)}"}, 400
+        
+    # search feature:
+    @staticmethod
+    def get_user_query(user_input, user_id):
+        """ignore case sen + show similar results. 
+        Item priority will be based on the users profile rating and condtion
+        exclude out own user id -> "$ne"""
+        user = users_col.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            return []
+        school = user.get("profile", {}).get("school")
+        query={"title": {"$regex":user_input,
+                          "$options": "i"},
+                          "status": "available",
+                          "user_id":{"$ne": ObjectId(user_id)},
+                          "school": school}
+
+        items=list(items_col.find(query))
+        return items
