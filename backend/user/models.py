@@ -39,3 +39,35 @@ class User:
             "password_hash": password_hash,
             "salt": salt
         }
+        result = users_col.insert_one(user)
+        return {"message": "User created successfully"}, 200
+
+    @staticmethod
+    def login(data):
+        email = data.get("email", "")  # normalize email
+        password = data.get("password", "")
+
+        if not email or not password:
+            return {"error": "Email and password required"}, 400
+
+        # find user by normalized email
+        user = users_col.find_one({"email": email})
+        if not user:
+            return {"error": "Invalid credentials"}, 401
+
+        # verify password
+        input_hash, _ = User.hash_password(password, user["salt"])
+        if input_hash == user["password_hash"]:
+            # Remove sensitive data before returning
+            user_data = {
+                "user_id": str(user["_id"]),
+                "username": user["username"],
+                "email": user["email"],
+                "profile": user.get("profile", {}),
+                "stats": user.get("stats", {})
+            }
+            return user_data, 200
+        else:
+            return {"error": "Invalid credentials"}, 401
+
+#need update profile

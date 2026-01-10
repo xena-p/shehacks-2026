@@ -89,3 +89,23 @@ def upload_image():
 def uploaded_file(filename):
     """Serve uploaded images"""
     return send_from_directory(UPLOAD_FOLDER, filename)
+
+
+#works
+#get OTHER user items
+@item_bp.route("/items", methods=["GET"])
+def get_items_for_browsing():
+    """Get items for browsing"""
+    user_id = request.args.get("user_id")
+    if not user_id:
+        return jsonify({"error": "User ID required"}), 400
+    
+    items, status_code = Item.get_items_for_browsing(user_id, exclude_user=True)
+    return jsonify({"items": items}), status_code
+
+#works
+@item_bp.route("/items/user/<user_id>", methods=["GET"])
+def get_user_items(user_id):
+    """Get items posted by a specific user"""
+    items, status_code = Item.get_user_items(user_id)
+    return jsonify({"items": items}), status_code
