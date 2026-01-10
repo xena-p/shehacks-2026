@@ -1,6 +1,8 @@
 from bson.objectid import ObjectId
 from db import items_col, users_col
 
+#create method for creating a list of items that are similar/most useful
+
 class Item:
     #works
     @staticmethod
@@ -13,10 +15,10 @@ class Item:
                 "description": item_data.get("description"),
                 "condition": item_data.get("condition"),
                 "category": item_data.get("category"),
-                "course_code": item_data.get("course_code"), #optional
+                "requester": " ", # no requester at creation
+                "program": item_data.get("program"), #optional
                 "images": item_data.get("images", []),
-                "pickup_date": item_data.get("pickup_date"), #
-                "pickup_location": item_data.get("pickup_location"), #
+                "return_date": item_data.get("return_date"),
                 "status": "available"  # available, exchanged, removed
             }
             result = items_col.insert_one(item)

@@ -10,11 +10,13 @@ def signup():
     username = data.get("username")
     email = data.get("email")
     password = data.get("password")
+    possible_dates = data.get("possible_dates", [])
+    profile = data.get("profile", {})
     
     if not username or not email or not password:
         return jsonify({"error": "Missing username, email, or password"}), 400
-    
-    result, status_code = User.signup(username, email, password)
+
+    result, status_code = User.signup(username, email, password, possible_dates, profile)
     return jsonify(result), status_code
 
 @user_bp.route("/login", methods=["POST"])

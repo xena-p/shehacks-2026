@@ -2,12 +2,11 @@
 
 import pymongo 
 import os
-
 from dotenv import load_dotenv
 
 load_dotenv()
-
 MONGO_PASS = os.environ.get("MONGO_PASS")
+
 
 if not MONGO_PASS:
     raise ValueError("MONGOPASS environment variable is not set.")
