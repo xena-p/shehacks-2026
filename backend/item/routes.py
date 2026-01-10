@@ -21,11 +21,14 @@ def create_item():
     if not user_id:
         return jsonify({"error": "User ID required"}), 400
     
+    if not os.path.exists(UPLOAD_FOLDER):
+        os.makedirs(UPLOAD_FOLDER)
+
     title = request.form.get("title")
     description = request.form.get("description")
     category = request.form.get("category")
     condition = request.form.get("condition")
-    location = request.form.get("location")
+    #location = request.form.get("location")
     user_id = request.form.get("user_id")  # send from frontend if needed
     required_fields = ["user_id", "title", "description", "category", "condition"]
     
@@ -40,7 +43,7 @@ def create_item():
         "description": description,
         "category": category,
         "condition": condition,
-        "location": location,
+        #"location": location,
         "images": images
     }
     if "images" in request.files:
