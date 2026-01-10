@@ -8,6 +8,8 @@ class Item:
     @staticmethod
     def create_item(user_id, item_data):
         """Create a new item"""
+        user = users_col.find_one({"_id": ObjectId(user_id)})
+        user_program = user.get("profile", {}).get("program", "Unknown")
         try:
             item = {
                 "user_id": ObjectId(user_id),
@@ -16,7 +18,7 @@ class Item:
                 "condition": item_data.get("condition"),
                 "category": item_data.get("category"),
                 "requester": " ", # no requester at creation
-                "program": item_data.get("program"), #optional
+                "program": user_program, #optional
                 "images": item_data.get("images", []),
                 "return_date": item_data.get("return_date"),
                 "status": "available"  # available, exchanged, removed
@@ -62,3 +64,31 @@ class Item:
             return items, 200
         except Exception as e:
             return [], 400
+        
+    @staticmethod
+    def request_item(item_id, requester_id):
+        #When a user likes/requests an item, mark it unavailable and set them as requester
+        try:
+            #1.Attempt to update the item ONLY if it is currently 'available'
+            result = items_col.update_one(
+                {
+                    "_id": ObjectId(item_id), 
+                    "status": "available" # Safety check: prevents double-booking
+                },
+                {
+                    "$set": {
+                        "status": "unavailable",
+                        "requester": ObjectId(requester_id)
+                    }
+                }
+            )
+
+            #2. Check if the update actually happened
+            if result.modified_count == 0:
+                #This means either the ID was wrong or status wasn't 'available'
+                return {"error": "Item is no longer available or does not exist"}, 400
+
+            return {"message": "Item requested successfully. You are now the requester!"}, 200
+
+        except Exception as e:
+            return {"error": f"Failed to request item: {str(e)}"}, 400

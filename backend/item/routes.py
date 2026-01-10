@@ -28,9 +28,10 @@ def create_item():
     description = request.form.get("description")
     category = request.form.get("category")
     condition = request.form.get("condition")
+    return_date = request.form.get("return_date")
     #location = request.form.get("location")
     user_id = request.form.get("user_id")  # send from frontend if needed
-    required_fields = ["user_id", "title", "description", "category", "condition"]
+    required_fields = ["user_id", "title", "description", "category", "condition", "return_date"]
     
     if not all(field in request.form for field in required_fields):
         return jsonify({"error": "Missing required fields"}), 400
@@ -43,8 +44,10 @@ def create_item():
         "description": description,
         "category": category,
         "condition": condition,
+        "return_date": return_date,
         #"location": location,
         "images": images
+        
     }
     if "images" in request.files:
         files = request.files.getlist("images")

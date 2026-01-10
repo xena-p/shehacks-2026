@@ -19,7 +19,7 @@ class User:
         return password_hash == stored_hash
 
     @staticmethod
-    def signup(username, email, password, possible_dates, profile):
+    def signup(username, email, password, possible_dates, profile, program, degree):
         allowed_domains = ["@torontomu.ca", "@mail.utoronto.ca", "@uwo.ca", "@my.yorku.ca"]
         
         #2. Convert to lowercase and check
@@ -63,8 +63,9 @@ class User:
             
             "profile": {
                 "school": user_school,
-                "degree": "",
-                "program": "",
+                "degree": degree,
+                "program": program,
+                "#ofratings": 0,
                 "rating": 0
             }
 
