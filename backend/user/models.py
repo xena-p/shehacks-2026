@@ -108,4 +108,24 @@ class User:
         else:
             return {"error": "Invalid credentials"}, 401
 
+    @staticmethod
+    def get_user_by_id(user_id):
+        """Get user by user_id"""
+        try:
+            user = users_col.find_one({"_id": ObjectId(user_id)})
+            if user:
+                # Return user data without sensitive information
+                user_data = {
+                    "user_id": str(user["_id"]),
+                    "username": user.get("username"),
+                    "email": user.get("email"),
+                    "profile": user.get("profile", {}),
+                    "possible_dates": user.get("possible_dates", [])
+                }
+                return user_data
+            return None
+        except Exception as e:
+            print(f"Error getting user by id: {str(e)}")
+            return None
+
 #need update profile

@@ -27,7 +27,7 @@ const LoginSignup = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
-
+    
     try {
       const loginData: LoginRequest = {
         email: loginEmail,
@@ -36,12 +36,16 @@ const LoginSignup = () => {
 
       const response = await axiosInstance.post<LoginResponse>('/login', loginData);
       
+      console.log('Login response:', response.data);
+      
       // Backend returns user data directly in response.data
       if (response.data && response.data.user_id) {
         localStorage.setItem('user', JSON.stringify(response.data));
         localStorage.setItem('user_id', response.data.user_id);
-        navigate('/profile');
+        console.log('Redirecting to profile:', `/profile/${response.data.user_id}`);
+        navigate(`/profile/${response.data.user_id}`);
       } else {
+        console.error('Invalid response - no user_id:', response.data);
         setError('Invalid response from server');
       }
     } catch (err) {
