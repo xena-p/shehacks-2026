@@ -75,4 +75,14 @@ export const apiService = {
     const response = await api.post(`/items/${itemId}/complete`, { rating_value: ratingValue });
     return response.data;
   },
+  // Matches page endpoints
+  getActiveRequests: async (requesterId: string) => {
+    const response = await api.get(`/my_requests/${requesterId}`);
+    return response.data;
+  },
+
+  getMyLoanedItems: async (userId: string) => {
+    const response = await api.get(`/items/loaned/${userId}`);
+    return response.data;
+  },
 };

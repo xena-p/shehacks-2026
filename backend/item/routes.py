@@ -1,4 +1,6 @@
 from datetime import datetime
+import json
+from bson import ObjectId, json_util
 from flask import Blueprint, request, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 import os
@@ -115,15 +117,29 @@ def get_items_for_browsing():
         return jsonify({"error": "User ID required"}), 400
     
     items, status_code = Item.get_items_for_browsing(user_id, exclude_user=True)
+    for item in items:
+        item["_id"] = str(item["_id"])
+        item["user_id"] = str(item["user_id"])
     return jsonify({"items": items}), status_code
 
 #works
+
 @item_bp.route("/items/user/<user_id>", methods=["GET"])
 def get_user_items(user_id):
-    """Get items posted by a specific user"""
-    items, status_code = Item.get_user_items(user_id)
-    return jsonify({"items": items}), status_code
-
+    try:
+        # 1. Fetch from database using the user_id filter
+        query = {"user_id": ObjectId(user_id)}
+        items = list(items_col.find(query).sort("created_at", -1))
+        
+        # 2. json_util.dumps handles BOTH the ObjectIds AND the Datetime objects
+        # This converts return_date to a string format automatically
+        sanitized_items = json.loads(json_util.dumps(items))
+        
+        return jsonify({"items": sanitized_items}), 200
+        
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": str(e)}), 400
 
 @item_bp.route("/search", methods=["GET"])
 def get_items_for_search():

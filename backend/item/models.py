@@ -65,6 +65,9 @@ class Item:
             for item in items:
                 item["_id"] = str(item["_id"])
                 item["user_id"] = str(item["user_id"])
+                # Convert requester field if it exists and is an ObjectId
+                if "requester" in item and item["requester"] != " " and isinstance(item["requester"], ObjectId):
+                    item["requester"] = str(item["requester"])
             return items, 200
         except Exception as e:
             return [], 400
