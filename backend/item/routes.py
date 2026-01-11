@@ -127,17 +127,19 @@ def get_items_for_browsing():
 @item_bp.route("/items/user/<user_id>", methods=["GET"])
 def get_user_items(user_id):
     try:
-        # 1. Ensure user_id is an ObjectId for the query
-        # 2. Make sure the field name "user_id" matches your DB column name
-        query = {"user_id": ObjectId(user_id)} 
-        
+        # 1. Fetch from database using the user_id filter
+        query = {"user_id": ObjectId(user_id)}
         items = list(items_col.find(query).sort("created_at", -1))
         
-        # Return the raw list (we handle JSON cleaning in the route)
-        return items, 200
+        # 2. json_util.dumps handles BOTH the ObjectIds AND the Datetime objects
+        # This converts return_date to a string format automatically
+        sanitized_items = json.loads(json_util.dumps(items))
+        
+        return jsonify({"items": sanitized_items}), 200
+        
     except Exception as e:
         print(f"Error: {e}")
-        return [], 400
+        return jsonify({"error": str(e)}), 400
 
 @item_bp.route("/search", methods=["GET"])
 def get_items_for_search():
