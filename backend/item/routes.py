@@ -115,6 +115,9 @@ def get_items_for_browsing():
         return jsonify({"error": "User ID required"}), 400
     
     items, status_code = Item.get_items_for_browsing(user_id, exclude_user=True)
+    for item in items:
+        item["_id"] = str(item["_id"])
+        item["user_id"] = str(item["user_id"])
     return jsonify({"items": items}), status_code
 
 #works
@@ -122,6 +125,9 @@ def get_items_for_browsing():
 def get_user_items(user_id):
     """Get items posted by a specific user"""
     items, status_code = Item.get_user_items(user_id)
+    for item in items:
+        item["_id"] = str(item["_id"])
+        item["user_id"] = str(item["user_id"])
     return jsonify({"items": items}), status_code
 
 

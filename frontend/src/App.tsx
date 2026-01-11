@@ -2,9 +2,9 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LoginSignup from './pages/LoginSignup';
 import Profile from './pages/Profile';
 import Browse from './pages/Browse';
-import Matches from './pages/Matches';
 
 function App() {
+  const userId = localStorage.getItem('user_id');
   return (
     <BrowserRouter>
       <Routes>
@@ -17,9 +17,6 @@ function App() {
 
         {/* Browse route */}
         <Route path="/browse" element={<Browse />} />
-
-        {/* Matches route */}
-        <Route path="/matches" element={<Matches />} />
 
         {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" replace />} />

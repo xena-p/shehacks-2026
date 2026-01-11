@@ -178,10 +178,7 @@ const Profile = () => {
             >
               Browse
             </button>
-            <button 
-              onClick={() => navigate('/matches')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg font-medium transition-all"
-            >
+            <button className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg font-medium transition-all">
               Matches
             </button>
           </div>
