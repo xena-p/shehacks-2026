@@ -195,6 +195,11 @@ class Item:
             user = users_col.find_one({"_id": item["user_id"]})
             if user:
                 ranking_user = user.get("profile", {}).get("rating", 0)
+                # Add owner information to item
+                item["owner"] = {
+                    "username": user.get("username"),
+                    "profile": user.get("profile", {})
+                }
             else:
                 ranking_user=0
             

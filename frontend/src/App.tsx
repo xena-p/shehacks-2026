@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LoginSignup from './pages/LoginSignup';
 import Profile from './pages/Profile';
+import Browse from './pages/Browse';
 
 function App() {
   const userId = localStorage.getItem('user_id');
@@ -13,6 +14,9 @@ function App() {
 
         {/* 2. Handle the dynamic ID path */}
         <Route path="/profile/:id" element={<Profile />} />
+
+        {/* Browse route */}
+        <Route path="/browse" element={<Browse />} />
 
         {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" replace />} />
