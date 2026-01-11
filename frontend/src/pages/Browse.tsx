@@ -159,7 +159,10 @@ const Browse = () => {
               Browse
               <span className="ml-auto bg-white/30 px-2 py-0.5 rounded text-xs">active</span>
             </button>
-            <button className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg font-medium transition-all">
+            <button
+              onClick={() => navigate('/matches')}
+              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg font-medium transition-all"
+            >
               Matches
             </button>
           </div>
