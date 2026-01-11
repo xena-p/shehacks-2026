@@ -261,12 +261,7 @@ const Browse = () => {
                     </button>
 
                     {/* Item Title */}
-                    <h3 className="font-bold text-gray-800 text-center mb-2 truncate">{item.title}</h3>
-
-                    {/* Owner Username */}
-                    {item.owner && (
-                      <p className="text-sm text-gray-600 text-center mb-4">by {item.owner.username}</p>
-                    )}
+                    <h3 className="font-bold text-gray-800 text-center mb-4 truncate">{item.title}</h3>
 
                     {/* Item Icon */}
                     <div className="w-16 h-16 bg-gradient-to-r from-teal-400 via-purple-400 to-pink-400 rounded-lg flex items-center justify-center mb-4 mx-auto">
@@ -275,15 +270,28 @@ const Browse = () => {
 
                     {/* Item Details */}
                     <div className="space-y-2">
-                      <div>
-                        <p className="text-xs font-semibold text-gray-600 mb-1">Condition</p>
-                        <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
-                          item.condition === 'excellent' || item.condition === 'gently used'
-                            ? 'bg-purple-100 text-purple-700 border border-purple-200'
-                            : 'bg-orange-100 text-orange-700 border border-orange-200'
-                        }`}>
-                          {item.condition.charAt(0).toUpperCase() + item.condition.slice(1)}
-                        </span>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1">
+                          <p className="text-xs font-semibold text-gray-600 mb-1">Condition</p>
+                          <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
+                            item.condition === 'excellent' || item.condition === 'gently used'
+                              ? 'bg-purple-100 text-purple-700 border border-purple-200'
+                              : 'bg-orange-100 text-orange-700 border border-orange-200'
+                          }`}>
+                            {item.condition.charAt(0).toUpperCase() + item.condition.slice(1)}
+                          </span>
+                        </div>
+                        {item.owner && (
+                          <div className="text-right">
+                            <p className="text-xs font-semibold text-gray-600 mb-1">Owner</p>
+                            <p className="text-xs text-gray-700">{item.owner.username}</p>
+                            {item.owner.profile && (
+                              <p className="text-xs text-gray-600">
+                                ⭐ {item.owner.profile.rating?.toFixed(1) || '0.0'}/5.0
+                              </p>
+                            )}
+                          </div>
+                        )}
                       </div>
 
                       <div>
