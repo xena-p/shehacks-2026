@@ -21,10 +21,25 @@ class User:
     @staticmethod
     def signup(username, email, password, possible_dates, profile, program, degree):
         allowed_domains = ["@torontomu.ca", "@mail.utoronto.ca", "@uwo.ca", "@my.yorku.ca"]
-        
+
         #2. Convert to lowercase and check
         email_lower = email.lower()
-        if not any(email_lower.endswith(domain) for domain in allowed_domains):
+
+        #make it so email is universty domain only liek torontomu.ca
+        school = None
+        if email_lower.endswith("@torontomu.ca"):
+            school = "TMU"
+        elif email_lower.endswith("@mail.utoronto.ca"):
+            school = "UofT"
+        elif email_lower.endswith("@uwo.ca"):
+            school = "Western"
+        elif email_lower.endswith("@my.yorku.ca"):
+            school = "York"
+        else:
+            return {"error": "Invalid university email"}, 400
+
+
+        if not school:
             return {"error": "Only TMU, UofT, York and Western emails are allowed"}, 400
 
         #Check if username already exists
@@ -41,17 +56,7 @@ class User:
         password_hash, salt = User.hash_password(password)
 
         #maybe add avatar/profile pic later
-        #make it so email is universty domain only liek torontomu.ca
-        if email_lower.endswith("@torontomu.ca"):
-            school = "TMU"
-        elif email_lower.endswith("@mail.utoronto.ca"):
-            school = "UofT"
-        elif email_lower.endswith("@uwo.ca"):
-            school = "Western"
-        elif email_lower.endswith("@my.yorku.ca"):
-            school = "York"
-        else:
-            return {"error": "Invalid university email"}, 400
+
 
         user_school = profile.get("school", school)
         user = {

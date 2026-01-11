@@ -8,12 +8,17 @@ export interface UserProfile {
   rating: number;
 }
 
+export interface PossibleDateSlot {
+  location: string;
+  slots: string[];
+}
+
 export interface User {
   user_id: string;
   username: string;
   email: string;
   profile: UserProfile;
-  possible_dates: string[];
+  possible_dates: PossibleDateSlot[];
 }
 
 export interface LoginRequest {
@@ -26,14 +31,14 @@ export interface LoginResponse {
   username: string;
   email: string;
   profile: UserProfile;
-  possible_dates: string[];
+  possible_dates: PossibleDateSlot[];
 }
 
 export interface SignupRequest {
   username: string;
   email: string;
   password: string;
-  possible_dates?: string[];
+  possible_dates?: PossibleDateSlot[];
   profile?: Partial<UserProfile>;
   program?: string;
   degree?: string;

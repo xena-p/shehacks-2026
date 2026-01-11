@@ -2,7 +2,7 @@ import { useState, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AxiosError } from 'axios';
 import axiosInstance from '../api/axiosInstance';
-import { LoginRequest, SignupRequest, LoginResponse, ApiError } from '../types';
+import { LoginRequest, SignupRequest, LoginResponse, ApiError, SignupResponse, PossibleDateSlot } from '../types';
 
 const LoginSignup = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -19,6 +19,7 @@ const LoginSignup = () => {
   const [signupPassword, setSignupPassword] = useState('');
   const [signupProgram, setSignupProgram] = useState('');
   const [signupDegree, setSignupDegree] = useState('');
+  const [possibleDates, setPossibleDates] = useState<PossibleDateSlot[]>([]);
   
   const navigate = useNavigate();
 
@@ -35,16 +36,28 @@ const LoginSignup = () => {
 
       const response = await axiosInstance.post<LoginResponse>('/login', loginData);
       
-      // Store user data and token (if provided)
-      if (response.data.user_id) {
+      // Backend returns user data directly in response.data
+      if (response.data && response.data.user_id) {
         localStorage.setItem('user', JSON.stringify(response.data));
-        // If your backend returns a token, it will be stored by the interceptor
+        localStorage.setItem('user_id', response.data.user_id);
         navigate('/profile');
+      } else {
+        setError('Invalid response from server');
       }
     } catch (err) {
-      if (err instanceof AxiosError && err.response) {
-        const errorData = err.response.data as ApiError;
-        setError(errorData.error || 'Login failed. Please try again.');
+      console.error('Login error:', err);
+      if (err instanceof AxiosError) {
+        if (err.response) {
+          // Server responded with error status
+          const errorData = err.response.data as ApiError;
+          setError(errorData.error || `Login failed: ${err.response.status} ${err.response.statusText}`);
+        } else if (err.request) {
+          // Request was made but no response received
+          setError('Cannot connect to server. Please check if the backend is running on http://localhost:8000');
+        } else {
+          // Error setting up request
+          setError('Error setting up request. Please try again.');
+        }
       } else {
         setError('An unexpected error occurred. Please try again.');
       }
@@ -65,24 +78,39 @@ const LoginSignup = () => {
         password: signupPassword,
         program: signupProgram,
         degree: signupDegree,
-        possible_dates: [],
+        possible_dates: possibleDates,
         profile: {},
       };
 
-      await axiosInstance.post('/signup', signupData);
+      const response = await axiosInstance.post<SignupResponse>('/signup', signupData);
       
-      // After successful signup, switch to login mode
-      setIsLogin(true);
-      setError('');
-      setSignupUsername('');
-      setSignupEmail('');
-      setSignupPassword('');
-      setSignupProgram('');
-      setSignupDegree('');
+      // Backend returns { message: "User created successfully" }
+      if (response.data && response.data.message) {
+        // After successful signup, switch to login mode and show success message
+        setIsLogin(true);
+        setError('');
+        setLoginEmail(signupEmail); // Pre-fill email for convenience
+        setSignupUsername('');
+        setSignupEmail('');
+        setSignupPassword('');
+        setSignupProgram('');
+        setSignupDegree('');
+        setPossibleDates([]);
+      }
     } catch (err) {
-      if (err instanceof AxiosError && err.response) {
-        const errorData = err.response.data as ApiError;
-        setError(errorData.error || 'Signup failed. Please try again.');
+      console.error('Signup error:', err);
+      if (err instanceof AxiosError) {
+        if (err.response) {
+          // Server responded with error status
+          const errorData = err.response.data as ApiError;
+          setError(errorData.error || `Signup failed: ${err.response.status} ${err.response.statusText}`);
+        } else if (err.request) {
+          // Request was made but no response received
+          setError('Cannot connect to server. Please check if the backend is running on http://localhost:8000');
+        } else {
+          // Error setting up request
+          setError('Error setting up request. Please try again.');
+        }
       } else {
         setError('An unexpected error occurred. Please try again.');
       }
@@ -91,6 +119,40 @@ const LoginSignup = () => {
     }
   };
 
+  const addLocation = () => {
+    setPossibleDates([...possibleDates, { location: '', slots: [] }]);
+  };
+
+  const removeLocation = (index: number) => {
+    setPossibleDates(possibleDates.filter((_, i) => i !== index));
+  };
+
+  const updateLocation = (index: number, location: string) => {
+    const updated = [...possibleDates];
+    updated[index].location = location;
+    setPossibleDates(updated);
+  };
+
+  const addTimeSlot = (locationIndex: number) => {
+    const updated = [...possibleDates];
+    updated[locationIndex] = {
+      ...updated[locationIndex],
+      slots: [...updated[locationIndex].slots, '']
+    };
+    setPossibleDates(updated);
+  };
+
+  const removeTimeSlot = (locationIndex: number, slotIndex: number) => {
+    const updated = [...possibleDates];
+    updated[locationIndex].slots = updated[locationIndex].slots.filter((_, i) => i !== slotIndex);
+    setPossibleDates(updated);
+  };
+
+  const updateTimeSlot = (locationIndex: number, slotIndex: number, value: string) => {
+    const updated = [...possibleDates];
+    updated[locationIndex].slots[slotIndex] = value;
+    setPossibleDates(updated);
+  };
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <div className="max-w-md w-full space-y-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 border border-purple-100">
@@ -263,6 +325,76 @@ const LoginSignup = () => {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                 placeholder="e.g., Bachelor of Science"
               />
+            </div>
+
+            {/* Possible Dates Section */}
+            <div className="border-t border-gray-200 pt-5">
+              <div className="flex justify-between items-center mb-4">
+                <label className="block text-sm font-medium text-gray-700">
+                  Available Times & Locations (Optional)
+                </label>
+                <button
+                  type="button"
+                  onClick={addLocation}
+                  className="px-3 py-1.5 text-sm bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all shadow-md"
+                >
+                  + Add Location
+                </button>
+              </div>
+
+              {possibleDates.map((dateSlot, locationIndex) => (
+                <div key={locationIndex} className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="flex items-center justify-between mb-3">
+                    <input
+                      type="text"
+                      value={dateSlot.location}
+                      onChange={(e) => updateLocation(locationIndex, e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                      placeholder="Location (e.g., ENG, DCC)"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeLocation(locationIndex)}
+                      className="ml-2 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                    >
+                      Remove
+                    </button>
+                  </div>
+
+                  <div className="space-y-2">
+                    {dateSlot.slots.map((slot, slotIndex) => (
+                      <div key={slotIndex} className="flex gap-2">
+                        <input
+                          type="datetime-local"
+                          value={slot}
+                          onChange={(e) => updateTimeSlot(locationIndex, slotIndex, e.target.value)}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeTimeSlot(locationIndex, slotIndex)}
+                          className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => addTimeSlot(locationIndex)}
+                      className="w-full px-3 py-2 text-sm text-purple-600 hover:bg-purple-50 rounded-lg border border-purple-200 transition-all"
+                    >
+                      + Add Time Slot
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              {possibleDates.length === 0 && (
+                <p className="text-sm text-gray-500 italic">
+                  Click "Add Location" to specify when and where you're available
+                </p>
+              )}
             </div>
 
             <button

@@ -1,18 +1,21 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 
 const axiosInstance: AxiosInstance = axios.create({
-  baseURL: 'http://localhost:8000',
+  baseURL: 'http://localhost:5000',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor to add JWT token from localStorage
+// Request interceptor - can be used for adding user_id or other headers if needed
 axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem('token');
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // Backend doesn't use JWT tokens currently
+    // If needed in the future, you can add user_id or token here
+    const userId = localStorage.getItem('user_id');
+    if (userId && config.headers) {
+      // Some endpoints might need user_id in headers or params
+      // This is a placeholder for future authentication
     }
     return config;
   },
@@ -21,20 +24,18 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle token storage
+// Response interceptor for error handling
 axiosInstance.interceptors.response.use(
   (response) => {
-    // Store token if it comes in the response (adjust based on your API)
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
-    }
+    // Backend doesn't use JWT tokens, so we just return the response
     return response;
   },
   (error) => {
-    // Handle 401 errors (unauthorized) - clear token and redirect to login
+    // Handle 401 errors (unauthorized) - clear user data
     if (error.response?.status === 401) {
+      localStorage.removeItem('user');
+      localStorage.removeItem('user_id');
       localStorage.removeItem('token');
-      // Optionally redirect to login page
     }
     return Promise.reject(error);
   }
