@@ -24,3 +24,11 @@ def login():
     data = request.get_json(silent=True) or {}  # safer than request.json
     result, status = User.login(data)  # use your User class login method
     return jsonify(result), status
+
+@user_bp.route("/user/<user_id>", methods=["GET"])
+def get_user(user_id):
+    user = User.get_user_by_id(user_id)
+    if user:
+        return jsonify(user), 200
+    else:
+        return jsonify({"error": "User not found"}), 404

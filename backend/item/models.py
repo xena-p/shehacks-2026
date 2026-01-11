@@ -1,5 +1,6 @@
 from bson.objectid import ObjectId
 from db import items_col, users_col
+from datetime import datetime
 
 #create method for creating a list of items that are similar/most useful
 
@@ -95,6 +96,75 @@ class Item:
         except Exception as e:
             return {"error": f"Failed to request item: {str(e)}"}, 400
         
+    @staticmethod
+    def get_active_requests(requester_id):
+        try:
+            current_time = datetime.utcnow() # Get current time in UTC
+            
+            # Find items where:
+            # 1. Requester matches
+            # 2. return_date is greater than (after) now
+            query = {
+                "requester": ObjectId(requester_id),
+                "return_date": {"$gt": current_time}
+            }
+            
+            cursor = items_col.find(query)
+            # Convert MongoDB cursor to a list and stringify ObjectIds
+            items = []
+            for doc in cursor:
+                doc["_id"] = str(doc["_id"])
+                doc["requester"] = str(doc["requester"])
+                if "user_id" in doc:
+                    doc["user_id"] = str(doc["user_id"])
+                # Format date for JSON if it exists
+                if "return_date" in doc and hasattr(doc["return_date"], "isoformat"):
+                    doc["return_date"] = doc["return_date"].isoformat()
+                items.append(doc)
+                
+            return {"items": items}, 200
+
+        except Exception as e:
+            return {"error": f"Failed to fetch active requests: {str(e)}"}, 500
+        
+
+    @staticmethod
+    def get_my_loaned_items(user_id):
+        try:
+            current_time = datetime.utcnow()
+            
+            # Query logic: 
+            # 1. user_id matches (you are the owner)
+            # 2. status is 'unavailable' (someone has requested/borrowed it)
+            # 3. return_date is in the future
+            query = {
+                "user_id": ObjectId(user_id),
+                "status": "unavailable",
+                "return_date": {"$gt": current_time}
+            }
+            
+            cursor = items_col.find(query)
+            items = []
+            
+            for doc in cursor:
+                # Convert ObjectIds to strings for JSON compatibility
+                doc["_id"] = str(doc["_id"])
+                doc["user_id"] = str(doc["user_id"])
+                
+                if "requester" in doc and doc["requester"]:
+                    doc["requester"] = str(doc["requester"])
+                
+                # Format date to string
+                if "return_date" in doc and hasattr(doc["return_date"], "isoformat"):
+                    doc["return_date"] = doc["return_date"].isoformat()
+                    
+                items.append(doc)
+                
+            return {"items": items}, 200
+
+        except Exception as e:
+            return {"error": f"Failed to fetch loaned items: {str(e)}"}, 500
+    
     # search feature:
     @staticmethod
     def get_user_query(user_input, user_id):
@@ -113,3 +183,5 @@ class Item:
 
         items=list(items_col.find(query))
         return items
+    
+    

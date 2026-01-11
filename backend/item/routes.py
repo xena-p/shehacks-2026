@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import Blueprint, request, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 import os
@@ -29,6 +30,13 @@ def create_item():
     category = request.form.get("category")
     condition = request.form.get("condition")
     return_date = request.form.get("return_date")
+
+    try:
+        # This handles strings like "2026-04-12T10:00" or "2026-04-12"
+        return_date_obj = datetime.fromisoformat(return_date)
+    except ValueError:
+        return jsonify({"error": "Invalid date format. Use YYYY-MM-DDTHH:MM"}), 400
+    
     #location = request.form.get("location")
     user_id = request.form.get("user_id")  # send from frontend if needed
     required_fields = ["user_id", "title", "description", "category", "condition", "return_date"]
@@ -44,7 +52,7 @@ def create_item():
         "description": description,
         "category": category,
         "condition": condition,
-        "return_date": return_date,
+        "return_date": return_date_obj,
         #"location": location,
         "images": images
         
@@ -136,3 +144,45 @@ def get_items_for_search():
         item["user_id"] = str(item["user_id"])
 
     return jsonify({"items": items}),200
+
+@item_bp.route('/items/<item_id>/request', methods=['POST'])
+def handle_request_item(item_id):
+    #1. Get the requester_id from the JSON body
+    data = request.get_json()
+    
+    if not data or 'requester_id' not in data:
+        return jsonify({"error": "Missing requester_id in request body"}), 400
+    
+    requester_id = data['requester_id']
+
+    #2. Call your static method
+    #Note: If requester_id comes from a logged-in session, use that instead
+    response, status_code = Item.request_item(item_id, requester_id)
+
+    #3. Return the result
+    return jsonify(response), status_code
+
+@item_bp.route('/my_requests/<requester_id>', methods=['GET'])
+def get_user_requests(requester_id):
+    # Call the static method from your class
+    # Replace 'Item' with your actual class name
+    response, status_code = Item.get_active_requests(requester_id)
+    
+    return jsonify(response), status_code
+
+@item_bp.route("/items/loaned/<user_id>", methods=["GET"])
+def get_loaned_items(user_id):
+    """
+    Returns items owned by the user that are currently 
+    marked 'unavailable' (loaned out) and have not expired.
+    """
+    # 1. Validation: Ensure the ID is a valid 24-character hex string for MongoDB
+    if len(user_id) != 24:
+        return jsonify({"error": "Invalid User ID format"}), 400
+
+    # 2. Call the static method from your Item model
+    # (Assuming your class is named Item)
+    response, status_code = Item.get_my_loaned_items(user_id)
+
+    # 3. Return the JSON response and the status code
+    return jsonify(response), status_code
