@@ -1,4 +1,6 @@
 from datetime import datetime
+import json
+from bson import ObjectId, json_util
 from flask import Blueprint, request, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 import os
@@ -121,15 +123,21 @@ def get_items_for_browsing():
     return jsonify({"items": items}), status_code
 
 #works
+
 @item_bp.route("/items/user/<user_id>", methods=["GET"])
 def get_user_items(user_id):
-    """Get items posted by a specific user"""
-    items, status_code = Item.get_user_items(user_id)
-    for item in items:
-        item["_id"] = str(item["_id"])
-        item["user_id"] = str(item["user_id"])
-    return jsonify({"items": items}), status_code
-
+    try:
+        # 1. Ensure user_id is an ObjectId for the query
+        # 2. Make sure the field name "user_id" matches your DB column name
+        query = {"user_id": ObjectId(user_id)} 
+        
+        items = list(items_col.find(query).sort("created_at", -1))
+        
+        # Return the raw list (we handle JSON cleaning in the route)
+        return items, 200
+    except Exception as e:
+        print(f"Error: {e}")
+        return [], 400
 
 @item_bp.route("/search", methods=["GET"])
 def get_items_for_search():
