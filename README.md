@@ -56,5 +56,11 @@ npm install
 npm run dev
 ```
 # Features
+### Sign-Up
+<img width="306" height="703" alt="image" src="https://github.com/user-attachments/assets/0521c68f-e3ef-4ebb-89b7-7a0bbeb40a0d" />
+
+### Login
+<img width="308" height="320" alt="image" src="https://github.com/user-attachments/assets/5b9147ff-3b92-45cd-9d31-11c6bb4adf8e" />
+
 # Dependencies 
 
