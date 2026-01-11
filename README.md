@@ -1,7 +1,6 @@
 # ResUse U – SheHacks 2026
 ReUse U is a student-focused platform designed to make borrowing and lending items within a university community fast, simple, and secure. It connects students who want to lend items they own with those who need them, reducing waste and promoting a sustainable, sharing-focused campus culture.
 
-<img width="306" height="703" alt="image" src="https://github.com/user-attachments/assets/0521c68f-e3ef-4ebb-89b7-7a0bbeb40a0d" />
 ---
 # Running the project
 
