@@ -166,6 +166,10 @@ const Profile = () => {
               onClick={() => navigate(`/profile/${loggedInUserId}`)}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${isOwnProfile ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md' : 'text-gray-700 hover:bg-gray-100'}`}
             >
+              {/* Add this span for the label */}
+              <span>Profile</span>
+              
+              {/* This badge stays on the right because of ml-auto */}
               <span className="ml-auto bg-white/30 px-2 py-0.5 rounded text-xs">active</span>
             </button>
             <button className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg font-medium transition-all">
