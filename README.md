@@ -1,6 +1,6 @@
 # ResUse U – SheHacks 2026
-
-SheHacks 2026 project
+# Overview
+ReUse U is a student-focused platform designed to make borrowing and lending items within a university community fast, simple, and secure. It connects students who want to lend items they own with those who need them, reducing waste and promoting a sustainable, sharing-focused campus culture.
 
 ---
 # Running the project
@@ -13,7 +13,7 @@ In order to run the *ResUse U* project, please follow the installation and setup
 git clone https://github.com/xena-p/shehacks-2026.git
 ```
 
-### Setup Backend
+## Setup Backend
 ```bash
 cd shehacks-2026
 cd backend
@@ -45,8 +45,17 @@ You will paste your MongoDB Atlas DATABASE USER into the file.
 
 MONGO_PASS=your_database_user_password_here
 
+THEN:
+```bash
+flask run
+```
 
-# Overview
+## Running Frontend
+```bash
+cd shehacks-2026/frontend
+npm install
+npm run dev
+```
 # Features
 # Dependencies 
 
