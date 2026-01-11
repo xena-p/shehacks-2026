@@ -186,3 +186,21 @@ def get_loaned_items(user_id):
 
     # 3. Return the JSON response and the status code
     return jsonify(response), status_code
+
+@item_bp.route("/items/activity/<requester_id>", methods=["GET"])
+def get_activity(requester_id):
+    """Route to see what I'm borrowing and what I need to rate."""
+    response, status_code = Item.get_user_activity(requester_id)
+    return jsonify(response), status_code
+
+@item_bp.route("/items/rate/<item_id>", methods=["POST"])
+def rate_owner(item_id):
+    """Route to submit a rating and close the loan."""
+    data = request.get_json()
+    rating = data.get("rating")
+
+    if not rating or not (1 <= rating <= 5):
+        return jsonify({"error": "Valid rating (1-5) required"}), 400
+
+    response, status_code = Item.complete_and_rate_owner(item_id, rating)
+    return jsonify(response), status_code

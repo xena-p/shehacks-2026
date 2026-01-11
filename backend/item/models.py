@@ -214,3 +214,72 @@ class Item:
         while not pq.is_empty():
             curr_items.append(pq.dequeue())
         return curr_items
+    
+
+    @staticmethod
+    def get_user_activity(requester_id):
+        """Categorizes items for the borrower: Active, Needs Rating (Overdue), or History."""
+        try:
+            current_time = datetime.utcnow()
+            # Find all items where this user is the borrower
+            query = {"requester": ObjectId(requester_id)}
+            cursor = items_col.find(query)
+            
+            active = []
+            needs_rating = []
+            history = []
+
+            for doc in cursor:
+                doc["_id"] = str(doc["_id"])
+                doc["user_id"] = str(doc.get("user_id", ""))
+                doc["requester"] = str(doc.get("requester", ""))
+
+                # --- THE LAZY LOGIC ---
+                # Check if it's currently on loan (unavailable)
+                if doc.get("status") == "unavailable":
+                    # Check if the clock has run out
+                    if doc["return_date"] < current_time:
+                        doc["virtual_status"] = "pending_review"
+                        needs_rating.append(doc)
+                    else:
+                        doc["virtual_status"] = "active"
+                        active.append(doc)
+                
+                # Check if it was already completed/rated
+                elif doc.get("status") == "old":
+                    history.append(doc)
+
+                # Format date for JSON
+                if "return_date" in doc:
+                    doc["return_date"] = doc["return_date"].isoformat()
+
+            return {"active": active, "needs_rating": needs_rating, "history": history}, 200
+        except Exception as e:
+            return {"error": str(e)}, 500
+
+    @staticmethod
+    def complete_and_rate_owner(item_id, rating_value):
+        """Archives the item and updates the owner's profile rating."""
+        try:
+            # 1. Get the item to find out who the owner (user_id) is
+            item = items_col.find_one({"_id": ObjectId(item_id)})
+            if not item:
+                return {"error": "Item not found"}, 404
+            
+            owner_id = item.get("user_id")
+
+            # 2. Update Owner Profile (Increment total stars and count)
+            users_col.update_one(
+                {"_id": ObjectId(owner_id)},
+                {"$inc": {"rating_sum": rating_value, "rating_count": 1}}
+            )
+
+            # 3. Change status to 'old' to hide it from active lists
+            items_col.update_one(
+                {"_id": ObjectId(item_id)},
+                {"$set": {"status": "old"}}
+            )
+
+            return {"message": "Rating submitted successfully"}, 200
+        except Exception as e:
+            return {"error": str(e)}, 500
