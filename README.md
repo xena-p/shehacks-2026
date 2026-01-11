@@ -63,4 +63,6 @@ npm run dev
 <img width="308" height="320" alt="image" src="https://github.com/user-attachments/assets/5b9147ff-3b92-45cd-9d31-11c6bb4adf8e" />
 
 # Dependencies 
-
+```bash
+pip install -r requirements.txt
+```
