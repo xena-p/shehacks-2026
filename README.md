@@ -3,8 +3,7 @@
 SheHacks 2026 project
 
 ---
-
-## Prerequisites
+# Running the project
 
 In order to run the *ResUse U* project, please follow the installation and setup guide below.
 
@@ -12,9 +11,41 @@ In order to run the *ResUse U* project, please follow the installation and setup
 
 ```bash
 git clone https://github.com/xena-p/shehacks-2026.git
-cd shehacks-2026
 ```
-# Running the project
+
+### Setup Backend
+```bash
+cd shehacks-2026
+cd backend
+python -m venv venv
+```
+Then, activate the virtual environment, and install dependencies (windows)
+```bash
+venv\Scripts\activate
+pip install -r requirements.txt
+```
+If om macOS / Linux:
+```bash
+source venv/bin/activate
+```
+### Create .env file 
+In the file explorer, create a file called .env, inside of \backend.
+
+First make sure you select file name extension in view
+<img width="883" height="635" alt="image" src="https://github.com/user-attachments/assets/ffbe87ea-8b14-4157-99f9-8b74cf70a316" />
+
+Then, create the file.
+<img width="195" height="73" alt="image" src="https://github.com/user-attachments/assets/cd264a4d-cb83-4432-af29-d5c2b0befe89" />
+
+
+Select yes.
+<img width="852" height="523" alt="image" src="https://github.com/user-attachments/assets/033d90f6-c889-41ab-8c10-cc747207f7e8" />
+
+You will paste your MongoDB Atlas DATABASE USER into the file.
+
+MONGO_PASS=your_database_user_password_here
+
+
 # Overview
 # Features
 # Dependencies 
