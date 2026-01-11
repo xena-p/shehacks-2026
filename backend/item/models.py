@@ -1,6 +1,7 @@
 from bson.objectid import ObjectId
 from db import items_col, users_col
 from datetime import datetime
+from .Priority_Queue import PriorityQueue
 
 #create method for creating a list of items that are similar/most useful
 
@@ -171,6 +172,8 @@ class Item:
         """ignore case sen + show similar results. 
         Item priority will be based on the users profile rating and condtion
         exclude out own user id -> "$ne"""
+
+        #"excellent", "gently used",  "fair", "poor" -> Make sure people only enter valid data terms!!
         user = users_col.find_one({"_id": ObjectId(user_id)})
         if not user:
             return []
@@ -182,6 +185,32 @@ class Item:
                           "school": school}
 
         items=list(items_col.find(query))
-        return items
-    
-    
+
+        "cont: priority queue info"
+
+        cond_rank={"excellent":3, "gently used":2, "fair":1, "poor":0}
+        pq=PriorityQueue()
+
+        for item in items:
+            user = users_col.find_one({"_id": item["user_id"]})
+            if user:
+                ranking_user = user.get("profile", {}).get("rating", 0)
+            else:
+                ranking_user=0
+            
+            cond_str = item.get("condition", "fair")
+            curr_cond = cond_rank.get(cond_str, 1)
+
+            pq_score=(ranking_user *0.5) + (curr_cond*0.25)
+            
+            item["_id"] = str(item["_id"])
+            item["user_id"] = str(item["user_id"])
+
+            pq.enqueue(pq_score, item)
+
+        "now dequeue bc it has out itms known/highlighted based on highest priority"
+        
+        curr_items=[]
+        while not pq.is_empty():
+            curr_items.append(pq.dequeue())
+        return curr_items
