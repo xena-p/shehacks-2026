@@ -133,9 +133,25 @@ def get_user_items(user_id):
         
         # 2. json_util.dumps handles BOTH the ObjectIds AND the Datetime objects
         # This converts return_date to a string format automatically
-        sanitized_items = json.loads(json_util.dumps(items))
-        
-        return jsonify({"items": sanitized_items}), 200
+        for item in items:
+            # Convert _id and user_id to strings
+            item["_id"] = str(item["_id"])
+            item["user_id"] = str(item["user_id"])
+            
+            # Convert requester ID if it exists
+            if "requester" in item and isinstance(item["requester"], ObjectId):
+                item["requester"] = str(item["requester"])
+
+            # Convert created_at Date to ISO string
+            if "created_at" in item and isinstance(item["created_at"], datetime):
+                item["created_at"] = item["created_at"].isoformat()
+
+            # Convert return_date Date to ISO string
+            if "return_date" in item and isinstance(item["return_date"], datetime):
+                item["return_date"] = item["return_date"].isoformat()
+
+        # 3. Use standard jsonify (this will now work because everything is a string/int)
+        return jsonify({"items": items}), 200
         
     except Exception as e:
         print(f"Error: {e}")
