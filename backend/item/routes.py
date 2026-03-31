@@ -83,19 +83,19 @@ def upload_image():
         return jsonify({"error": "No image selected"}), 400
     
     if file and allowed_file(file.filename):
-        # Create uploads directory if it doesn't exist
+        #Create uploads directory if it doesn't exist
         if not os.path.exists(UPLOAD_FOLDER):
             os.makedirs(UPLOAD_FOLDER)
         
-        # Generate unique filename
+        #Generate unique filename
         filename = secure_filename(file.filename)
         unique_filename = f"{uuid.uuid4()}_{filename}"
         filepath = os.path.join(UPLOAD_FOLDER, unique_filename)
         
-        # Save file
+        #Save file
         file.save(filepath)
         
-        # Return the file URL (you might want to serve this through Flask or use a CDN)
+        #Return the file URL (you might want to serve this through Flask or use a CDN)
         image_url = f"/uploads/{unique_filename}"
         return jsonify({"message": "Image uploaded successfully", "image_url": image_url}), 200
     
@@ -235,4 +235,29 @@ def rate_owner(item_id):
         return jsonify({"error": "Valid rating (1-5) required"}), 400
 
     response, status_code = Item.complete_and_rate_owner(item_id, rating)
+    return jsonify(response), status_code
+
+@item_bp.route("/items/<item_id>", methods=["DELETE"])
+def delete_item_route(item_id):
+    data = request.get_json()
+    if not data or "user_id" not in data:
+        return jsonify({"error": "User ID required"}), 400
+
+    user_id = data["user_id"]
+
+    response, status_code = Item.delete_item(user_id, item_id)
+    return jsonify(response), status_code
+
+@item_bp.route("/items/<item_id>", methods=["PATCH"])
+def update_item_route(item_id):
+    data = request.get_json()
+
+    user_id = data.get("user_id")
+    if not user_id:
+        return jsonify({"error": "User ID required"}), 400
+
+    #Remove user_id from update fields
+    update_data = {k: v for k, v in data.items() if k != "user_id"}
+
+    response, status_code = Item.update_item(user_id, item_id, update_data)
     return jsonify(response), status_code

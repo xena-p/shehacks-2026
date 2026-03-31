@@ -1,4 +1,6 @@
 from bson.objectid import ObjectId
+from bson.errors import InvalidId
+import os
 from db import items_col, users_col
 from datetime import datetime
 from .Priority_Queue import PriorityQueue
@@ -6,6 +8,38 @@ from .Priority_Queue import PriorityQueue
 #create method for creating a list of items that are similar/most useful
 
 class Item:
+    @staticmethod
+    def delete_item(user_id, item_id):
+        try:
+            #Validate ObjectId
+            try:
+                obj_id = ObjectId(item_id)
+            except InvalidId:
+                return {"error": "Invalid item ID"}, 400
+
+            #Find item
+            item = items_col.find_one({"_id": obj_id})
+            if not item:
+                return {"error": "Item not found"}, 404
+
+            #Check ownership
+            if str(item["user_id"]) != str(user_id):
+                return {"error": "Unauthorized"}, 403
+
+            #Delete images (if stored locally)
+            for image_path in item.get("images", []):
+                if os.path.exists(image_path):
+                    os.remove(image_path)
+
+            #Delete from collection
+            items_col.delete_one({"_id": obj_id})
+
+            return {"message": "Item deleted successfully"}, 200
+
+        except Exception as e:
+            return {"error": str(e)}, 500
+    
+
     #works
     @staticmethod
     def create_item(user_id, item_data):
@@ -21,6 +55,8 @@ class Item:
                 "condition": item_data.get("condition"),
                 "category": item_data.get("category"),
                 "requester": " ", # no requester at creation
+                "pickup_date": None, # to be set when requested
+                "pickup_location": None, # to be set when requested
                 "program": user_program, #optional
                 "school": user_school,
                 "images": item_data.get("images", []),
@@ -289,5 +325,50 @@ class Item:
             )
 
             return {"message": "Rating submitted successfully"}, 200
+        except Exception as e:
+            return {"error": str(e)}, 500
+        
+    @staticmethod
+    def update_item(user_id, item_id, update_data):
+        try:
+            #Validate ObjectId
+            try:
+                obj_id = ObjectId(item_id)
+            except InvalidId:
+                return {"error": "Invalid item ID"}, 400
+
+            #Find item
+            item = items_col.find_one({"_id": obj_id})
+            if not item:
+                return {"error": "Item not found"}, 404
+
+            #Check ownership
+            if str(item["user_id"]) != str(user_id):
+                return {"error": "Unauthorized"}, 403
+
+            #Handle return_date if present
+            if "return_date" in update_data:
+                try:
+                    update_data["return_date"] = datetime.fromisoformat(update_data["return_date"])
+                except ValueError:
+                    return {"error": "Invalid date format"}, 400
+
+            #Remove empty fields (optional but nice)
+            update_data = {k: v for k, v in update_data.items() if v is not None}
+
+            if not update_data:
+                return {"error": "No valid fields to update"}, 400
+
+            #Update only provided fields
+            result = items_col.update_one(
+                {"_id": obj_id},
+                {"$set": update_data}
+            )
+
+            if result.modified_count == 0:
+                return {"message": "No changes made"}, 200
+
+            return {"message": "Item updated successfully"}, 200
+
         except Exception as e:
             return {"error": str(e)}, 500
