@@ -14,11 +14,31 @@ const Browse = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!loggedInUserId) {
-      navigate('/');
-      return;
-    }
-  }, [loggedInUserId, navigate]);
+    if (!loggedInUserId) return;
+
+    const fetchAllItems = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const response = await axiosInstance.get<ItemsResponse>('/items', {
+          params: { user_id: loggedInUserId },
+        });
+        if (response.data && response.data.items) {
+          setItems(response.data.items);
+        } else {
+          setItems([]);
+        }
+      } catch (err) {
+        console.error('Fetch items error:', err);
+        setError('Failed to load items');
+        setItems([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllItems();
+  }, [loggedInUserId]);
 
   const handleSearch = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
